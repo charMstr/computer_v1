@@ -1,0 +1,4 @@
+
+Comments/doc for functions
+unit tests
+snake case naming convention
