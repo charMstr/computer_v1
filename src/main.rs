@@ -8,6 +8,79 @@ struct Equation {
     delta : f32,
 }
 
+///this function will create a array of coefficients, 
+fn build_vector_of_signed_coefficients(array_of_monome: Vec<String>) -> Vec<f32>
+{
+    let mut array_coefficients :Vec<f32> = Vec::new();
+    for monome in array_of_monome {
+        array_coefficients.push(extract_signed_coefficient(monome)); 
+    }
+    array_coefficients
+}
+
+/// This function will take as input a string representing a part of the polynome, as "a * X^y" and
+/// return the coefficient with the correct sign.
+///
+/// example input1: "0*X^2"
+/// example input2: "+1*X^3"
+/// example input3: "-4*X^0"
+fn extract_signed_coefficient(single_monome: String) -> f32 {
+    //split until the '*' operator
+    let coeff = single_monome.split("*").next().unwrap();
+    let coeff = coeff.parse::<f32>().unwrap();
+    println!("signed_coeff: {}", coeff);
+    coeff
+}
+
+/// this funciton takes as input a polynome
+/// example: "a * X^0 - b * X^1"
+/// and will return a vector of monomes, keeping the correct sign for the coefficient.
+///
+fn build_array_of_monome(polynome: &str) -> Vec<String>
+{
+    let mut array_of_monomes = Vec::new();
+
+    let polynome = polynome.replace(" ", ""); 
+    let polynome_with_extra_spaces = polynome.replace("+", " +");
+    let polynome_with_extra_spaces = polynome_with_extra_spaces.replace("-", " -");
+    let splited_in_monomes = polynome_with_extra_spaces.split(" ");
+    for monome in splited_in_monomes {
+        if monome.len() == 0 { //means there was an empty string because of a '-'
+            continue
+        }
+        array_of_monomes.push(String::from(monome));
+    }
+    array_of_monomes
+}
+
+///this funciton will produce the reduced form of our equation for display on screen
+
+fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &Vec<f32>) -> String {
+
+    let mut reduced = String::new();
+
+    // /!\ modifies left in the function, &mut...
+    coeff_reduced_form(left, right); 
+    let left_reduced = left;
+
+    for (index, coeff) in left_reduced.iter().enumerate()
+    {  
+        let bit_of_equation = format!(" {} * X^{}", coeff, index);
+        reduced.push_str(&bit_of_equation); 
+    }
+    println!("reduced equation: {}", reduced);
+    reduced
+}
+
+///this funciton takes the coefficietns from the right hand side of the equation
+/// and substracts them to the coefficients from the left hand side...
+fn coeff_reduced_form(left: & mut Vec<f32>, right: &Vec<f32>) {
+    for (l, r) in left.iter_mut().zip(right) {
+        println!("l = {}, and r = {}", l, r);
+        *l = *l - *r;
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
@@ -17,8 +90,9 @@ fn main() {
        panic!("equation must contains the \"=\" sign");
     }
     
+    
     let input = args[1].clone();
-    println!("{}", args[1]);
+    //println!("{}", args[1]);
     let split_around_equal : Vec<&str> = input.split("=").collect();
 
     let mut equation = Equation  
@@ -28,6 +102,22 @@ fn main() {
         reduce_form: String::new(),
         delta:0.0,
     };
+
+    let array_of_monomes = build_array_of_monome(&equation.lhs);
+    println!("\ndebug array_of_monomes");
+    for monome in &array_of_monomes { println!("{}", monome)};
+    let mut array_of_signed_coeffs = build_vector_of_signed_coefficients(array_of_monomes);
+
+    let fake_right_hand_side = vec!(1.2, 3.0);
+    /*
+    coeff_reduced_form(&mut array_of_signed_coeffs, &fake_right_hand_side);
+    println!("\ndebug array_of_signed_coeffs REDUCED:");
+    for coeff in &array_of_signed_coeffs { println!("{}", coeff)};
+    */
+
+    create_reduced_form_of_equation(& mut array_of_signed_coeffs, &fake_right_hand_side);
+
+    /*
 
     let mut right_coeff : [f32;3] = [0.0,0.0,0.0]; // mind equation > 2 degree
     let mut left_coeff : [f32;3] = [0.0,0.0,0.0];
@@ -138,5 +228,5 @@ fn main() {
     else {
         println!("pas d'inconnu dans cette équation...");
     }
-
+    */
 }
