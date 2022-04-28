@@ -59,16 +59,26 @@ fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &Vec<f32>) -> St
 
     let mut reduced = String::new();
 
-    // /!\ modifies left in the function, &mut...
-    coeff_reduced_form(left, right); 
+    coeff_reduced_form(left, right); // /!\ modifies left in the function
     let left_reduced = left;
 
-    for (index, coeff) in left_reduced.iter().enumerate()
+    for (index, &coeff) in left_reduced.iter().enumerate()
     {  
-        let bit_of_equation = format!(" {} * X^{}", coeff, index);
-        reduced.push_str(&bit_of_equation); 
+        let mut sign = String::new();
+        if index == 0 && coeff < 0.0
+        {
+            sign.push_str("- ");
+        }
+        else if index != 0 && coeff < 0.0 {
+            sign.push_str(" - ");
+        }
+        else if index != 0 && coeff >= 0.0 {
+            sign.push_str(" + ");
+        }
+        let monome = sign + &format!("{} * X^{}", coeff.abs(), index);
+        reduced.push_str(&monome); 
     }
-    println!("reduced equation: {}", reduced);
+    reduced.push_str(" = 0");
     reduced
 }
 
@@ -81,10 +91,19 @@ fn coeff_reduced_form(left: & mut Vec<f32>, right: &Vec<f32>) {
     }
 }
 
+/// This function fetches the polynomial degree of the equation we are solving
+/// Note: Each power of X, starting from X^0 is associated with a coefficient.
+/// Those coefficients are stored in order in a vector, so the length of the
+/// vector is equivalent to the max power.
+
+fn fetch_polynomial_degree(array_of_signed_coeffs: Vec<f32>) -> usize {
+    array_of_signed_coeffs.len()
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
-       panic!("usage: ./computer_v1 \"1 + X^2\"");
+       panic!("need one argument!\nusage: ./computer_v1 \"0 * X^0 + 1 * X^1 = 0\"");
     }
     else if !args[1].contains("=") {
        panic!("equation must contains the \"=\" sign");
@@ -103,19 +122,17 @@ fn main() {
         delta:0.0,
     };
 
-    let array_of_monomes = build_array_of_monome(&equation.lhs);
-    println!("\ndebug array_of_monomes");
-    for monome in &array_of_monomes { println!("{}", monome)};
-    let mut array_of_signed_coeffs = build_vector_of_signed_coefficients(array_of_monomes);
+    let left_array_of_monomes = build_array_of_monome(&equation.lhs);
+    let right_array_of_monomes = build_array_of_monome(&equation.rhs);
 
-    let fake_right_hand_side = vec!(1.2, 3.0);
-    /*
-    coeff_reduced_form(&mut array_of_signed_coeffs, &fake_right_hand_side);
-    println!("\ndebug array_of_signed_coeffs REDUCED:");
-    for coeff in &array_of_signed_coeffs { println!("{}", coeff)};
-    */
+    let mut left_array_of_signed_coeffs = build_vector_of_signed_coefficients(left_array_of_monomes);
+    let mut right_array_of_signed_coeffs = build_vector_of_signed_coefficients(right_array_of_monomes);
 
-    create_reduced_form_of_equation(& mut array_of_signed_coeffs, &fake_right_hand_side);
+
+    println!("Reduced form: {}", 
+        create_reduced_form_of_equation(& mut left_array_of_signed_coeffs, &right_array_of_signed_coeffs));
+    println!("Polynomial degree: {}",
+        fetch_polynomial_degree(left_array_of_signed_coeffs));
 
     /*
 
@@ -134,6 +151,7 @@ fn main() {
         else {
             panic!("mauvais formatage, vous devez écrire : a * x^0 + b * x^1 .... même si le coeff est nul");
         }
+
         
     }
 
