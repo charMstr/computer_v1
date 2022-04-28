@@ -59,12 +59,11 @@ fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &mut Vec<f32>) -
 
     let mut reduced = String::new();
 
-    // /!\ modifies left in the function, &mut...
-    coeff_reduced_form(left, right); 
+    coeff_reduced_form(left, right); // /!\ modifies left in the function
     let left_reduced = left;
     println!("left_reduced : {:?}",left_reduced);
 
-    for (index, coeff) in left_reduced.iter().enumerate()
+    for (index, &coeff) in left_reduced.iter().enumerate()
     {  
         if coeff > &0.0 && index > 0 {
             let bit_of_equation = format!("+ {:.2} * X^{} ", coeff, index);
@@ -162,7 +161,7 @@ fn solve_first_degree_equation(array_coeff : &Vec<f32>) -> f32 {
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
-       panic!("usage: ./computer_v1 \"1 + X^2\"");
+       panic!("need one argument!\nusage: ./computer_v1 \"0 * X^0 + 1 * X^1 = 0\"");
     }
     else if !args[1].contains("=") {
        panic!("equation must contains the \"=\" sign");
@@ -215,9 +214,6 @@ fn main() {
         };
     }
 }
-
-
-
 
 // testing
 #[cfg(test)]
