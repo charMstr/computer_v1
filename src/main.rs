@@ -4,12 +4,12 @@ use std::env;
 struct Equation {
     lhs: String,
     rhs: String,
-    reduce_form : String,
+    reduced_form : String,
     delta : f32,
 }
 
 ///this function will create a array of coefficients, 
-fn build_vector_of_signed_coefficients(array_of_monome: Vec<String>) -> Vec<f32>
+fn build_vector_of_signed_coefficients(array_of_monome: Vec<String>) -> Vec<f32> //n°2
 {
     let mut array_coefficients :Vec<f32> = Vec::new();
     for monome in array_of_monome {
@@ -28,7 +28,7 @@ fn extract_signed_coefficient(single_monome: String) -> f32 {
     //split until the '*' operator
     let coeff = single_monome.split("*").next().unwrap();
     let coeff = coeff.parse::<f32>().unwrap();
-    println!("signed_coeff: {}", coeff);
+    //println!("signed_coeff: {}", coeff);
     coeff
 }
 
@@ -36,7 +36,7 @@ fn extract_signed_coefficient(single_monome: String) -> f32 {
 /// example: "a * X^0 - b * X^1"
 /// and will return a vector of monomes, keeping the correct sign for the coefficient.
 ///
-fn build_array_of_monome(polynome: &str) -> Vec<String>
+fn build_array_of_monome(polynome: &str) -> Vec<String> // n°1
 {
     let mut array_of_monomes = Vec::new();
 
@@ -55,30 +55,108 @@ fn build_array_of_monome(polynome: &str) -> Vec<String>
 
 ///this funciton will produce the reduced form of our equation for display on screen
 
-fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &Vec<f32>) -> String {
+fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &mut Vec<f32>) -> String { //n¨3
 
     let mut reduced = String::new();
 
     // /!\ modifies left in the function, &mut...
     coeff_reduced_form(left, right); 
     let left_reduced = left;
+    println!("left_reduced : {:?}",left_reduced);
 
     for (index, coeff) in left_reduced.iter().enumerate()
     {  
-        let bit_of_equation = format!(" {} * X^{}", coeff, index);
-        reduced.push_str(&bit_of_equation); 
+        if coeff > &0.0 && index > 0 {
+            let bit_of_equation = format!("+ {:.2} * X^{} ", coeff, index);
+            reduced.push_str(&bit_of_equation); 
+        }
+        else {
+            let bit_of_equation = format!("{:.2} * X^{} ", coeff, index);
+            reduced.push_str(&bit_of_equation); 
+        }
     }
-    println!("reduced equation: {}", reduced);
+    let mut reduced = reduced.replace('-', "- ");
+    reduced.push_str("= 0");
+    //println!("reduced equation: {}", reduced);
     reduced
 }
 
 ///this funciton takes the coefficietns from the right hand side of the equation
 /// and substracts them to the coefficients from the left hand side...
-fn coeff_reduced_form(left: & mut Vec<f32>, right: &Vec<f32>) {
+fn coeff_reduced_form(left: & mut Vec<f32>, right: &mut Vec<f32>) {
     for (l, r) in left.iter_mut().zip(right) {
-        println!("l = {}, and r = {}", l, r);
+        //println!("l = {}, and r = {}", l, r);
         *l = *l - *r;
     }
+}
+
+/// this function return the number of degree of a equation
+fn get_polynomial_degree(reduced_form : &str) -> u32 {
+    let polynomial_degree : usize = reduced_form.matches("X^").count();
+    polynomial_degree as u32 -1
+}
+
+/// this function return the number of solution of a first degree equation
+fn get_nb_solution_first_degree(array_coeff : &Vec<f32>) -> u16 {
+    if array_coeff[0] != 0.0 {
+        if array_coeff[1] != 0.0 {
+            return 1;
+        }
+        else {
+            return 50; // no solution
+        }
+    }
+    else {
+        if array_coeff[1] != 0.0 {
+            return 0; // 0 is solution
+        }
+        else {
+            return 99; // infinity of solution
+        }
+    }
+}
+
+/// this function return the number of solution of a second degree equation
+fn get_nb_solution_second_degree(mut p_equation : &mut Equation, array_coeff : &Vec<f32>) -> u16 {
+    p_equation.delta = (array_coeff[1]*array_coeff[1]) - (4.0*array_coeff[2] * array_coeff[0]);
+    if p_equation.delta < 0.0 {
+        0
+    }
+    else if p_equation.delta == 0.0 {
+        1
+    } else {
+        2
+    }
+}
+/* 
+fn get_sqrt(number :f32) -> f32 {
+    for i in 1..number/2 {
+        if i*i == number {
+            return i;
+        }
+    }
+    panic!("no sqrt for this number");
+}*/
+
+/// this function take the array_coeff and the equation structure as an input and will return the solution of a equation of second degree
+fn solve_second_degree_equation(p_equation : &mut Equation, array_coeff : &Vec<f32>) -> Vec<f32> {
+    assert!(p_equation.delta >= 0.0);
+    if get_nb_solution_second_degree(p_equation,array_coeff) == 2 {
+        let mut res = Vec::new();
+        res.push((-array_coeff[1]-f32::sqrt(p_equation.delta))/(2.0*array_coeff[2]));
+        res.push((-array_coeff[1]+f32::sqrt(p_equation.delta))/(2.0*array_coeff[2]));
+        res
+    } else {
+        let mut res = Vec::new();
+        res.push((-array_coeff[1])/(2.0*array_coeff[2]));
+        res
+    }
+}
+
+/// this function take the array_coeff as an input and will return the solution of a equation of first degree
+fn solve_first_degree_equation(array_coeff : &Vec<f32>) -> f32 {
+    let res : f32 = -array_coeff[0] / array_coeff[1];
+    res
 }
 
 fn main() {
@@ -92,141 +170,60 @@ fn main() {
     
     
     let input = args[1].clone();
-    //println!("{}", args[1]);
     let split_around_equal : Vec<&str> = input.split("=").collect();
 
     let mut equation = Equation  
     {
         lhs: split_around_equal[0].to_string(),
         rhs: split_around_equal[1].to_string(),
-        reduce_form: String::new(),
+        reduced_form: String::new(),
         delta:0.0,
     };
 
-    let array_of_monomes = build_array_of_monome(&equation.lhs);
-    println!("\ndebug array_of_monomes");
-    for monome in &array_of_monomes { println!("{}", monome)};
-    let mut array_of_signed_coeffs = build_vector_of_signed_coefficients(array_of_monomes);
+    let array_of_monomes_left = build_array_of_monome(&equation.lhs);
+    let array_of_monomes_right = build_array_of_monome(&equation.rhs);
 
-    let fake_right_hand_side = vec!(1.2, 3.0);
-    /*
-    coeff_reduced_form(&mut array_of_signed_coeffs, &fake_right_hand_side);
-    println!("\ndebug array_of_signed_coeffs REDUCED:");
-    for coeff in &array_of_signed_coeffs { println!("{}", coeff)};
-    */
+    let mut array_of_signed_coeff_left = build_vector_of_signed_coefficients(array_of_monomes_left);
+    let mut array_of_signed_coeffs_right = build_vector_of_signed_coefficients(array_of_monomes_right);
 
-    create_reduced_form_of_equation(& mut array_of_signed_coeffs, &fake_right_hand_side);
+    equation.reduced_form = create_reduced_form_of_equation(& mut array_of_signed_coeff_left, &mut array_of_signed_coeffs_right);
 
-    /*
+    println!("reduced form : {:?}",equation.reduced_form);
+    //println!("mon delta = {} ",equation.delta);
+    let polynomial_degree = match get_polynomial_degree(&mut equation.reduced_form) {
+        0 => {println!("There is no unknown in your equation..");0},
+        1 => {println!("polynomial degree : 1");1},
+        2 => {println!("polynomial degree : 2");2},
+        n @ 3.. => {println!("Sorry, we can't solve a polynomial equation of degree {} ",n); 0},
+    };
 
-    let mut right_coeff : [f32;3] = [0.0,0.0,0.0]; // mind equation > 2 degree
-    let mut left_coeff : [f32;3] = [0.0,0.0,0.0];
-
-
-    let split_right = equation.rhs.replace(" ","");
-    let split_right : Vec<&str> = split_right.split(&['+', '-']).collect();
-    // for every pieces, we're going to test the presence of the right format (mind uppercase)
-    for (i,elem) in split_right.iter().enumerate() {
-        if elem.contains(format!("x^{}",i).as_str()) {
-            let temp : Vec<&str> = elem.split('*').collect();
-            right_coeff[i] = temp[0].parse().unwrap();
-        }
-        else {
-            panic!("mauvais formatage, vous devez écrire : a * x^0 + b * x^1 .... même si le coeff est nul");
-        }
-        
-    }
-
-    let split_left = equation.lhs.replace(" ", "");
-    let split_left : Vec<&str> = split_left.split(&['+', '-']).collect();
-
-    for (i,elem) in split_left.iter().enumerate() {
-        if elem.contains(format!("x^{}",i).as_str()) { // mind uppercase of x !
-            let temp : Vec<&str> = elem.split('*').collect();
-            left_coeff[i] = temp[0].parse().unwrap();
-
-        }
-        else {
-            panic!("mauvais formatage, vous devez écrire : a * x^0 + b * x^1 .... même si le coeff est nul");
+    if polynomial_degree == 1 {
+        match get_nb_solution_first_degree(&array_of_signed_coeff_left) {
+            0 => println!("There is one solution which is 0"),
+            1 => println!("The unique solution is : {} ",solve_first_degree_equation(&array_of_signed_coeff_left)),
+            50 => println!("There is no solutions"),
+            99 => println!("Infinity of solutions"),
+            _ => panic!("bug in get_nb_solution_first_degree"),
         }
     }
-
-    // found the negative sign of left part
-    for i in 0..split_left.len() {
-        let equation_string = equation.lhs.replace(" ",""); // i have to assign a varialbe here, otherwise it will be drop at the end of the statement
-        //let split_left_byte = equation.lhs.replace(" ","").as_bytes();
-        let split_left_byte = equation_string.as_bytes();
-        let index_number = match equation.lhs.replace(" ", "").find(split_left[i]) {
-            Some(res) => res,
-            None => 0,
+    else if polynomial_degree == 2 {
+        match get_nb_solution_second_degree(&mut equation, &array_of_signed_coeff_left) {
+            0 => println!("There is no solution"),
+            1 => println!("The unique solution is : {:?}",solve_second_degree_equation(&mut equation, &array_of_signed_coeff_left)),
+            2 => println!("The two solutions are : {:?}",solve_second_degree_equation(&mut equation, &array_of_signed_coeff_left)),
+            _ => panic!("bug in get_nb_solution_second_degree"),
         };
-        if index_number > 0 {
-            if split_left_byte[index_number-1] == 45 {
-                //println!("here there is a negativ sign : {}",index_number-1);
-                left_coeff[i] = -left_coeff[i];
-            }
-        }
     }
+}
 
-    // found the negative sign of right part
-    for i in 0..split_right.len() {
-        let equation_string = equation.rhs.replace(" ","");
-        let split_right_byte = equation_string.as_bytes();
-        let index_number = match equation.rhs.replace(" ", "").find(split_right[i]) {
-            Some(res) => res,
-            None => 0,
-        };
-        if index_number > 0 {
-            if split_right_byte[index_number-1] == 45 {
-                right_coeff[i] = -right_coeff[i];
-            }
-        }
-    }
 
-    println!("at the end : left coeff : {:?}  = right coeff : {:?}",left_coeff, right_coeff);
-    let mut reduce_coeff :[f32;3] = [0.0,0.0,0.0];
 
-    for i in 0..reduce_coeff.len() {
-        reduce_coeff[i] = left_coeff[i] - right_coeff[i];
-    }
-    // working solution as well but better use the simple one :)
-    /*for ((x,left),right) in reduce_coeff.iter_mut().zip(left_coeff).zip(right_coeff) {
-        *x = left- right;
-    }*/
-    println!("reduce coeff : {:?}",reduce_coeff);
-    equation.reduce_form = format!("{} * X^0 + {} * X^1 + {} * X^2 = 0",reduce_coeff[0],reduce_coeff[1],reduce_coeff[2]);
-    println!("reduce form  : {:?}",equation.reduce_form);
 
-    // mind to use the delta calculation only for 2nd polynomial degree 
-    
-    equation.delta = (reduce_coeff[1]*reduce_coeff[1]) - (4.*reduce_coeff[2]*reduce_coeff[0]);
-    println!("delta =  {:?}",equation.delta);
-    // Display of the number/solutions 
-    if equation.delta < 0.0 {
-        println!("Il n'y a aucune solution pour résoudre cette Equation dans R");
-        println!("pas de solutions");
+// testing
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test1() {
+        assert_eq!(2+2,4);
     }
-    else if equation.delta == 0.0 {
-        println!("Il y a une solution à cette équation");
-        println!("la solution est : {}",-reduce_coeff[1]/(2.0*reduce_coeff[2]));
-    }
-    else {
-        println!("Il y a 2 solutions distinctes à cette équation");
-        println!("les solutions sont : {} et {}",(-reduce_coeff[1]+f32::sqrt(equation.delta))/(2.0*reduce_coeff[2]),(-reduce_coeff[1]-f32::sqrt(equation.delta))/(2.0*reduce_coeff[2]));
-    }
-
-    // display of the polynomial degree
-    if reduce_coeff[2] != 0.0 {
-        println!("Polynomia degree : 2");
-    }
-    else if reduce_coeff[1] != 0.0 {
-        println!("Polynomia degree : 1");
-    }
-    else if reduce_coeff[0] != 0.0 {
-        println!("Polynomia degree : 0");
-    }
-    else {
-        println!("pas d'inconnu dans cette équation...");
-    }
-    */
 }
