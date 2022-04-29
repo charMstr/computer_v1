@@ -1,46 +1,47 @@
 use crate::Equation;
+use crate::Solutions;
 /// this function return the number of degree of a equation
 pub fn get_polynomial_degree(reduced_form : &str) -> u32 {
     let polynomial_degree : usize = reduced_form.matches("X^").count();
-    polynomial_degree as u32
+    polynomial_degree as u32 -1
 }
 
 /// this function return the number of solution of a first degree equation
-pub fn get_nb_solution_first_degree(array_coeff : &Vec<f32>) -> u16 {
+pub fn get_nb_solution_first_degree(array_coeff : &Vec<f32>) -> Solutions {
     if array_coeff[0] != 0.0 {
         if array_coeff[1] != 0.0 {
-            return 1;
+            return Solutions::UniqueSolution;
         }
         else {
-            return 50; // no solution
+            return Solutions::NoSolution; // no solution
         }
     }
     else {
         if array_coeff[1] != 0.0 {
-            return 0; // 0 is solution
+            return Solutions::ZeroOnlySolution; // 0 is solution
         }
         else {
-            return 99; // infinity of solution
+            return Solutions::InfinityOfSolution; // infinity of solution
         }
     }
 }
 
 /// this function return the number of solution of a second degree equation
-pub fn get_nb_solution_second_degree(mut p_equation : &mut Equation, array_coeff : &Vec<f32>) -> u16 {
+pub fn get_nb_solution_second_degree(mut p_equation : &mut Equation, array_coeff : &Vec<f32>) -> Solutions {
     p_equation.delta = (array_coeff[1]*array_coeff[1]) - (4.0*array_coeff[2] * array_coeff[0]);
     if p_equation.delta < 0.0 {
-        0
+        Solutions::NoSolution
     }
     else if p_equation.delta == 0.0 {
-        1
+        Solutions::UniqueSolution
     } else {
-        2
+        Solutions::TwoSolution
     }
 }
 /// this function take the array_coeff and the equation structure as an input and will return the solution of a equation of second degree
 pub fn solve_second_degree_equation(p_equation : &mut Equation, array_coeff : &Vec<f32>) -> Vec<f32> {
     assert!(p_equation.delta >= 0.0);
-    if get_nb_solution_second_degree(p_equation,array_coeff) == 2 {
+    if get_nb_solution_second_degree(p_equation,array_coeff) == Solutions::TwoSolution {
         let mut res = Vec::new();
         res.push((-array_coeff[1]-f32::sqrt(p_equation.delta))/(2.0*array_coeff[2]));
         res.push((-array_coeff[1]+f32::sqrt(p_equation.delta))/(2.0*array_coeff[2]));

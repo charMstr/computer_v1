@@ -53,18 +53,15 @@ pub fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &Vec<f32>) -
     //println!("left_reduced : {:?}",left_reduced);
 
     for (index, &coeff) in left_reduced.iter().enumerate()
-    {  
+    {
         if coeff > 0.0 && index > 0 {
             let bit_of_equation = format!("+ {:.2} * X^{} ", coeff, index);
             reduced.push_str(&bit_of_equation); 
         }
-        else if coeff == 0.0 {
-            
-        }
         else {
-            let bit_of_equation = format!("{:.2} ", coeff);
+            let bit_of_equation = format!("{:.2} * X^{} ", coeff, index);
             reduced.push_str(&bit_of_equation); 
-        }
+        }        
     }
     let mut reduced = reduced.replace('-', "- ");
     reduced.push_str("= 0");

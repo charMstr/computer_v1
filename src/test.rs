@@ -43,7 +43,7 @@ fn unit_build_vector_of_signed_coefficients() {
 fn first_dataset() {
 
     
-    let equation_string = "3 * x^0 + 2 * x^1 - 4 * x^2 = 1 * x^0 + 1 * x^1";
+    let equation_string = "5 * x^0 + 4 * x^1 -9.3* x^2 = 1 * x^0";
     let split_equation : Vec<&str> = equation_string.split("=").collect();
 
     let mut equation = super::Equation {
@@ -61,15 +61,15 @@ fn first_dataset() {
 
     equation.reduced_form = equation_analyser::create_reduced_form_of_equation(&mut array_of_signed_coeff_left,&array_of_signed_coeffs_right);
 
-    assert_eq!(equation.reduced_form,"2.00 * X^0 + 1.00 * X^1 - 4.00 * X^2 = 0");
+    assert_eq!(equation.reduced_form,"4.00 * X^0 + 4.00 * X^1 - 9.30 * X^2 = 0");
 
     let polynomial_degree = equation_calculation::get_polynomial_degree(&mut equation.reduced_form);
 
     assert_eq!(polynomial_degree,2);
 
-    assert_eq!(equation_calculation::get_nb_solution_second_degree(&mut equation,&array_of_signed_coeff_left),2);
+    assert_eq!(equation_calculation::get_nb_solution_second_degree(&mut equation,&array_of_signed_coeff_left),super::Solutions::TwoSolution);
 
-    let response = vec!(0.843,-0.593);
+    let response = vec!(0.90,-0.3651);
     let response:Vec<f32> = response.into_iter().map(|v:f32| v.round()).collect();
     let solving = equation_calculation::solve_second_degree_equation(&mut equation, &array_of_signed_coeff_left);
     let solving : Vec<f32> = solving.into_iter().map(|v:f32| v.round()).collect();

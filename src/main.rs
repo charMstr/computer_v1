@@ -14,6 +14,16 @@ pub struct Equation {
     pub delta : f32,
 }
 
+#[derive(PartialEq)]
+#[derive(Debug)]
+ pub enum Solutions {
+    NoSolution,
+    ZeroOnlySolution,
+    UniqueSolution,
+    TwoSolution,
+    InfinityOfSolution,
+}
+
 fn main() {
 
     let args: Vec<String> = env::args().collect();
@@ -50,18 +60,18 @@ fn main() {
 
     if polynomial_degree == 1 {
         match equation_calculation::get_nb_solution_first_degree(&array_of_signed_coeff_left) {
-            0 => println!("There is one solution which is 0"),
-            1 => println!("The unique solution is : {} ",equation_calculation::solve_first_degree_equation(&array_of_signed_coeff_left)),
-            50 => println!("There is no solutions"),
-            99 => println!("Infinity of solutions"),
+            Solutions::ZeroOnlySolution => println!("There is one solution which is 0"),
+            Solutions::UniqueSolution => println!("The unique solution is : {} ",equation_calculation::solve_first_degree_equation(&array_of_signed_coeff_left)),
+            Solutions::NoSolution => println!("There is no solutions"),
+            Solutions::InfinityOfSolution => println!("Infinity of solutions"),
             _ => panic!("bug in get_nb_solution_first_degree"),
         }
     }
     else if polynomial_degree == 2 {
         match equation_calculation::get_nb_solution_second_degree(&mut equation, &array_of_signed_coeff_left) {
-            0 => println!("There is no solution"),
-            1 => println!("The unique solution is : {:?}",equation_calculation::solve_second_degree_equation(&mut equation, &array_of_signed_coeff_left)),
-            2 => println!("The two solutions are : {:?}",equation_calculation::solve_second_degree_equation(&mut equation, &array_of_signed_coeff_left)),
+            Solutions::NoSolution => println!("There is no solution in R"),
+            Solutions::UniqueSolution => println!("The unique solution is : {:?}",equation_calculation::solve_second_degree_equation(&mut equation, &array_of_signed_coeff_left)),
+            Solutions::TwoSolution => println!("The two solutions are : {:?}",equation_calculation::solve_second_degree_equation(&mut equation, &array_of_signed_coeff_left)),
             _ => panic!("bug in get_nb_solution_second_degree"),
         };
     } else if polynomial_degree > 2 {
