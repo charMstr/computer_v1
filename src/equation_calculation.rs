@@ -1,9 +1,22 @@
 use crate::Equation;
 use crate::Solutions;
+use crate::equation_analyser::build_array_of_monome;
 /// this function return the number of degree of a equation
 pub fn get_polynomial_degree(reduced_form : &str) -> u32 {
-    let polynomial_degree : usize = reduced_form.matches("X^").count();
-    polynomial_degree as u32 -1
+    // can't use array_coeffiscient.len here cause we're not shrinking it // not working if coeff > 9
+    let test = build_array_of_monome(reduced_form);
+    let test = test.last().unwrap();
+    let mut max = 0;
+    let test: Vec<&str> = test.split('^').collect();
+    if !(test[1].is_empty()) {
+        let test_bytes = test[1].as_bytes();
+        let test = test_bytes[0] as char; // not working if double digit number
+        let test = test.to_digit(35).unwrap();
+        if test > max {
+            max = test;
+        }
+    }
+    max
 }
 
 /// this function return the number of solution of a first degree equation

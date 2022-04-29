@@ -2,9 +2,42 @@
 pub fn build_vector_of_signed_coefficients(array_of_monome: Vec<String>) -> Vec<f32> //n°2
 {
     let mut array_coefficients :Vec<f32> = Vec::new();
+    /* 
     for monome in array_of_monome {
         array_coefficients.push(extract_signed_coefficient(monome)); 
-    }       
+    }*/
+    for monome in array_of_monome {
+        let pieces: Vec<&str> = monome.split("*").collect();
+        if pieces.len() > 1 { // if we have a time operator
+            //println!("mes pieces : {:?}",pieces);
+            if pieces[1].contains("x^") || pieces[1].contains("X^") { // let's check for an x or X (indeed it could be 3*5)
+                let byte_string = pieces[1].as_bytes();    
+                //println!("mon tableau de byte : {:?}",byte_string);
+                let index_puissance = pieces[1].find('^').unwrap()+1;
+                let puissance = byte_string[index_puissance] as char;
+                //println!("ma puissance  as char !!:  : {:?}",puissance);
+                let puissance = puissance.to_digit(35).unwrap();
+                let puissance = puissance as usize;
+                //println!("ma puissance as f32 :  : {:?}",puissance as f32);
+                if array_coefficients.len() < puissance+1 {
+                    array_coefficients.resize(puissance+1, 0.0);
+                }
+                array_coefficients[puissance] = pieces[0].parse::<f32>().unwrap();
+            } else {
+                // we have to make the operation beetween the 2 number and push it
+                let product = pieces[0].parse::<f32>().unwrap() * pieces[1].parse::<f32>().unwrap();
+                array_coefficients[0] = product
+            }
+            
+        } else {
+            if array_coefficients.len() == 0 {
+                array_coefficients.push(pieces[0].parse::<f32>().unwrap());
+            }else {
+                array_coefficients[0] = pieces[0].parse::<f32>().unwrap();
+            }
+        }
+    }
+    println!("mon vec signed hihi: {:?}",array_coefficients);
     array_coefficients
 }
 
@@ -56,6 +89,17 @@ pub fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &Vec<f32>) -
     {
         if coeff > 0.0 && index > 0 {
             let bit_of_equation = format!("+ {:.2} * X^{} ", coeff, index);
+            reduced.push_str(&bit_of_equation); 
+        }
+        else if coeff < 0.0 && index > 0 {
+            let bit_of_equation = format!("{:.2} * X^{} ", coeff, index);
+            reduced.push_str(&bit_of_equation); 
+        }
+        else if coeff == 0.0 {
+
+        }
+        else if index == 0 {
+            let bit_of_equation = format!("{:.2} ", coeff);
             reduced.push_str(&bit_of_equation); 
         }
         else {
