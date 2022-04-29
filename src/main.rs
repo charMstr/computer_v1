@@ -3,6 +3,9 @@ use std::env;
 mod equation_calculation;
 mod equation_analyser;
 
+#[cfg(test)]
+mod test;
+
 #[derive(Debug)]
 pub struct Equation {
     pub lhs: String,
@@ -20,7 +23,6 @@ fn main() {
     else if !args[1].contains("=") {
        panic!("equation must contains the \"=\" sign");
     }
-    
     
     let input = args[1].clone();
     let split_around_equal : Vec<&str> = input.split("=").collect();
@@ -64,14 +66,7 @@ fn main() {
         };
     } else if polynomial_degree > 2 {
         println!("Sorry, we can't solve polynomial degree more than degree 2");
-    }
-}
-
-// testing
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test1() {
-        assert_eq!(2+2,4);
+    } else {
+        println!("Votre equation ne contient pas d'inconnu...");
     }
 }

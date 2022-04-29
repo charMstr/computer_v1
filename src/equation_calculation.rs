@@ -2,7 +2,7 @@ use crate::Equation;
 /// this function return the number of degree of a equation
 pub fn get_polynomial_degree(reduced_form : &str) -> u32 {
     let polynomial_degree : usize = reduced_form.matches("X^").count();
-    polynomial_degree as u32 -1
+    polynomial_degree as u32
 }
 
 /// this function return the number of solution of a first degree equation

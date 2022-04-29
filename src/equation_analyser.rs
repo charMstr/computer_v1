@@ -4,7 +4,7 @@ pub fn build_vector_of_signed_coefficients(array_of_monome: Vec<String>) -> Vec<
     let mut array_coefficients :Vec<f32> = Vec::new();
     for monome in array_of_monome {
         array_coefficients.push(extract_signed_coefficient(monome)); 
-    }
+    }       
     array_coefficients
 }
 
@@ -58,8 +58,11 @@ pub fn create_reduced_form_of_equation(left: & mut Vec<f32>, right: &Vec<f32>) -
             let bit_of_equation = format!("+ {:.2} * X^{} ", coeff, index);
             reduced.push_str(&bit_of_equation); 
         }
+        else if coeff == 0.0 {
+            
+        }
         else {
-            let bit_of_equation = format!("{:.2} * X^{} ", coeff, index);
+            let bit_of_equation = format!("{:.2} ", coeff);
             reduced.push_str(&bit_of_equation); 
         }
     }
