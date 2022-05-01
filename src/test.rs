@@ -97,7 +97,7 @@ fn first_dataset() {
 
     equation.reduced_form = equation_analyser::create_reduced_form_of_equation(&mut array_of_signed_coeff_left,&array_of_signed_coeffs_right);
 
-    assert_eq!(equation.reduced_form,"4.00 + 4.00 * X^1 - 9.30 * X^2 = 0");
+    assert_eq!(equation.reduced_form,"4.00 + 4.00 * X - 9.30 * X^2 = 0");
 
     let polynomial_degree = equation_calculation::get_polynomial_degree(&mut equation.reduced_form);
 
@@ -111,4 +111,12 @@ fn first_dataset() {
     let solving : Vec<f32> = solving.into_iter().map(|v:f32| v.round()).collect();
 
     assert_eq!(solving,response);
+}
+
+#[test]
+fn input_correct() {
+
+    let input = "3 + 2x^1 = 0";
+
+    assert_eq!(equation_analyser::is_input_correct(&String::from(input)),true);
 }

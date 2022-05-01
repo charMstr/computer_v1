@@ -34,7 +34,15 @@ fn main() {
        panic!("equation must contains the \"=\" sign");
     }
     
-    let input = args[1].clone();
+    let mut input = args[1].clone();
+    //println!("avant correction : {:?}",input);
+    equation_analyser::correct_input(&mut input);
+    //println!("apres correction : {:?}",input);
+    let test = equation_analyser::is_input_correct(&mut input);
+    if !test {
+        panic!("input not OK");
+    }
+
     let split_around_equal : Vec<&str> = input.split("=").collect();
 
     let mut equation = Equation  
@@ -53,7 +61,9 @@ fn main() {
 
     equation.reduced_form = equation_analyser::create_reduced_form_of_equation(& mut array_of_signed_coeff_left, &array_of_signed_coeffs_right);
 
-    println!("reduced form : {:?}",equation.reduced_form);
+    let reduced_form = equation.reduced_form.replace("^1", "");
+    println!("reduced form : {:?}",reduced_form);
+
     //println!("mon delta = {} ",equation.delta);
     let polynomial_degree = equation_calculation::get_polynomial_degree(&mut equation.reduced_form);
     println!("polynomial degree : {}",polynomial_degree);

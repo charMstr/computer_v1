@@ -8,6 +8,7 @@ pub fn get_polynomial_degree(reduced_form : &str) -> u32 {
     let test = test.last().unwrap();
     let mut max = 0;
     let test: Vec<&str> = test.split('^').collect();
+    //println!("test :::: {:?}",test);
     if !(test[1].is_empty()) {
         let test_bytes = test[1].as_bytes();
         let test = test_bytes[0] as char; // not working if double digit number
